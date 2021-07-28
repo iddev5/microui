@@ -1107,7 +1107,7 @@ int mu_begin_window_ex(mu_Context *ctx, const char *title, mu_Rect rect, int opt
       mu_Id id = mu_get_id(ctx, "!title", 6);
       mu_update_control(ctx, id, tr, opt);
       mu_draw_control_text(ctx, title, tr, MU_COLOR_TITLETEXT, opt);
-      if (id == ctx->focus && ctx->mouse_down == MU_MOUSE_LEFT && !(opt & MU_OPT_NOMOVE)) {
+      if (id == ctx->focus && ctx->mouse_down == MU_MOUSE_LEFT && ~opt & MU_OPT_NOMOVE) {
         cnt->rect.x += ctx->mouse_delta.x;
         cnt->rect.y += ctx->mouse_delta.y;
       }
@@ -1128,19 +1128,21 @@ int mu_begin_window_ex(mu_Context *ctx, const char *title, mu_Rect rect, int opt
     }
   }
 
-  push_container_body(ctx, cnt, body, opt);
-
   /* do `resize` handle */
   if (~opt & MU_OPT_NORESIZE) {
     int sz = ctx->style->title_height;
     mu_Id id = mu_get_id(ctx, "!resize", 7);
     mu_Rect r = mu_rect(rect.x + rect.w - sz, rect.y + rect.h - sz, sz, sz);
     mu_update_control(ctx, id, r, opt);
+    mu_draw_icon(ctx, MU_ICON_RESIZE, r, ctx->style->colors[MU_COLOR_TEXT]);
     if (id == ctx->focus && ctx->mouse_down == MU_MOUSE_LEFT) {
       cnt->rect.w = mu_max(96, cnt->rect.w + ctx->mouse_delta.x);
       cnt->rect.h = mu_max(64, cnt->rect.h + ctx->mouse_delta.y);
     }
+    body.h -= sz;
   }
+
+  push_container_body(ctx, cnt, body, opt);
 
   /* resize to content size */
   if (opt & MU_OPT_AUTOSIZE) {
